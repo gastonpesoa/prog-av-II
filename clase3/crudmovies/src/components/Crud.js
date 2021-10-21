@@ -3,6 +3,7 @@ import Form from './Form'
 import Loader from './Loader'
 import Table from './Table'
 
+const URL = "http://localhost:5000/movies/";
 
 const Crud = () => {
 
@@ -12,7 +13,6 @@ const Crud = () => {
 
 
     useEffect(() => {
-        const URL = "http://localhost:5000/movies";
         const getMovies = async (url) => {
             setloading(true);
             try {
@@ -33,27 +33,61 @@ const Crud = () => {
 
     const createMovie = (newMovie) => {
         //console.log(newMovie)
-        newMovie.id = Date.now();
-        setMovies(movies => [...movies, newMovie])
-        alert("Alta Okey!")
+        // newMovie.id = Date.now();
+        setloading(true);
+        fetch(URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newMovie)
+        })
+            .then(res => res.json())
+            .then(movie => {
+                setMovies(movies => [...movies, movie])
+            })
+            .finally(() => {
+                alert("Alta Okey!")
+                setloading(false);
+            })
     }
 
-    const updateMovie = (movieUpdated) => {
-        //console.log(movieUpdated)
-        setMovies((movies) => {
-            return movies.map((movie) =>
-                movie.id === movieUpdated.id ? movieUpdated : movie
-            )
+    const updateMovie = (movieToUpdate) => {
+        setloading(true);
+        fetch(URL + movieToUpdate.id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(movieToUpdate)
         })
-        alert("Modificacion Okey!")
+            .then(res => res.json())
+            .then(movieUpdated => {
+                setMovies((movies) => {
+                    return movies.map((movie) =>
+                        movie.id === movieUpdated.id ? movieUpdated : movie
+                    )
+                })
+            })
+            .finally(() => {
+                alert("Modificacion Okey!")
+                setloading(false);
+            })
     }
 
     const deleteMovie = (id) => {
         if (window.confirm("Confirma eliminacion de " + id)) {
-            setMovies((movies) => {
-                return movies.filter(movie => movie.id !== id)
+            setloading(true);
+            fetch(URL + id, {
+                method: "DELETE"
             })
-            alert("Eliminado Okey!")
+                .then(res => {
+                    if (res.ok) {
+                        setMovies((movies) => {
+                            return movies.filter(movie => movie.id !== id)
+                        })
+                    }
+                })
+                .finally(() => {
+                    alert("Eliminado Okey!")
+                    setloading(false);
+                })
         }
     }
 
